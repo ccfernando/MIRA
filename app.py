@@ -24,7 +24,7 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, send_from_directory, url_for
 from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 from torchvision import transforms
 from torchvision.models import efficientnet_b0
@@ -32,6 +32,7 @@ from torchvision.models import efficientnet_b0
 
 MODEL_PATH = Path("alz_model.pth")
 PROCESSED_UPLOADS_DIR = Path("static") / "processed_uploads"
+SCREENSHOTS_DIR = Path("screenshots")
 IMAGE_SIZE = 224
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -52,6 +53,54 @@ app.config["SECRET_KEY"] = "alzheimer-demo-secret-key"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 class_names: List[str] = DEFAULT_CLASSES
+
+
+# This function returns the most recently modified file that matches a pattern.
+def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
+    matching_files = [path for path in directory.glob(pattern) if path.is_file()]
+    if not matching_files:
+        return None
+    return max(matching_files, key=lambda path: path.stat().st_mtime)
+
+
+# This function builds the analytics panel data from the saved training artifacts.
+def get_analytics_assets() -> List[dict]:
+    latest_training = SCREENSHOTS_DIR / "latest_training.png"
+    latest_gradcam = SCREENSHOTS_DIR / "latest_gradcam.png"
+    latest_confusion = get_latest_matching_file(SCREENSHOTS_DIR, "epoch_*_confusion_matrix.png")
+
+    assets = [
+        {
+            "title": "Training Curves",
+            "pill": "Live",
+            "description": "Latest saved training dashboard with loss and accuracy curves.",
+            "path": latest_training if latest_training.exists() else None,
+        },
+        {
+            "title": "Confusion Matrix",
+            "pill": "Epoch",
+            "description": "Most recent validation confusion matrix exported during training.",
+            "path": latest_confusion,
+        },
+        {
+            "title": "Attention Map",
+            "pill": "Grad-CAM",
+            "description": "Latest Grad-CAM overlay showing where the model focused.",
+            "path": latest_gradcam if latest_gradcam.exists() else None,
+        },
+    ]
+
+    for asset in assets:
+        path = asset["path"]
+        if path is None:
+            asset["image_url"] = None
+            asset["open_url"] = None
+        else:
+            relative_path = path.relative_to(SCREENSHOTS_DIR).as_posix()
+            asset["image_url"] = url_for("training_artifact", filename=relative_path)
+            asset["open_url"] = asset["image_url"]
+
+    return assets
 
 
 # This function returns the preprocessing pipeline for model inference.
@@ -214,7 +263,12 @@ def predict_image(image_path: Path) -> Tuple[str, float]:
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")
+    return render_template("index.html", analytics_assets=get_analytics_assets())
+
+
+@app.route("/artifacts/<path:filename>", methods=["GET"])
+def training_artifact(filename: str):
+    return send_from_directory(SCREENSHOTS_DIR.resolve(), filename)
 
 
 @app.route("/predict", methods=["POST"])

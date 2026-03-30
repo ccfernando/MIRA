@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 File: templates/index.html
 Purpose: Display the responsive MIRA dashboard landing page with upload,
 research metrics, and medical AI dashboard styling.
@@ -144,27 +144,24 @@ Research/education only.
                     </div>
 
                     <div class="visual-grid">
-                        <div class="viz-card">
-                            <div class="viz-header">
-                                <span>Training Curves</span>
-                                <span class="viz-pill">Live</span>
+                        {% for asset in analytics_assets %}
+                            <div class="viz-card">
+                                <div class="viz-header">
+                                    <span>{{ asset.title }}</span>
+                                    <span class="viz-pill">{{ asset.pill }}</span>
+                                </div>
+                                {% if asset.image_url %}
+                                    <a href="{{ asset.open_url }}" target="_blank" rel="noopener noreferrer" class="viz-image-link" title="Open full-size visualization">
+                                        <img src="{{ asset.image_url }}" alt="{{ asset.title }}" class="viz-image">
+                                    </a>
+                                {% else %}
+                                    <div class="fake-chart chart-empty">
+                                        <p>No saved visualization yet. Run training to populate this panel.</p>
+                                    </div>
+                                {% endif %}
+                                <p class="viz-description">{{ asset.description }}</p>
                             </div>
-                            <div class="fake-chart chart-lines"></div>
-                        </div>
-                        <div class="viz-card">
-                            <div class="viz-header">
-                                <span>Confusion Matrix</span>
-                                <span class="viz-pill">Epoch</span>
-                            </div>
-                            <div class="fake-chart chart-grid"></div>
-                        </div>
-                        <div class="viz-card">
-                            <div class="viz-header">
-                                <span>ROC / Attention</span>
-                                <span class="viz-pill">Interpretability</span>
-                            </div>
-                            <div class="fake-chart chart-wave"></div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </article>
 
@@ -204,7 +201,7 @@ Research/education only.
                         </div>
                     </div>
                     <p class="body-copy">
-                        MIRA is designed as a compact research dashboard for Alzheimerâ€™s MRI experimentation, pairing a clean operator experience with transparent visual outputs that are easier to review, present, and document.
+                        MIRA is designed as a compact research dashboard for Alzheimer's MRI experimentation, pairing a clean operator experience with transparent visual outputs that are easier to review, present, and document.
                     </p>
                 </article>
             </section>
@@ -247,4 +244,3 @@ Research/education only.
     </script>
 </body>
 </html>
-
