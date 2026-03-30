@@ -1,0 +1,158 @@
+<!--
+File: templates/result.html
+Purpose: Display the responsive MIRA results dashboard with prediction,
+processed upload preview, and research-style result cards.
+Research/education only.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA | Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-lockup">
+                <button class="sidebar-toggle" type="button" aria-label="Toggle navigation" title="Toggle sidebar" data-sidebar-toggle>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="brand-mark">M</div>
+                <div>
+                    <p class="brand-name">MIRA</p>
+                    <p class="brand-subtitle">Medical Image Recognition for Alzheimer's</p>
+                </div>
+            </div>
+
+            <nav class="topnav" aria-label="Primary navigation">
+                <a href="{{ url_for('index') }}#overview">Home</a>
+                <a href="{{ url_for('index') }}#upload">Upload</a>
+                <a href="#results">Results</a>
+                <a href="{{ url_for('index') }}#about">About</a>
+            </nav>
+
+            <button class="profile-chip" type="button" title="Prediction session active">
+                <span class="status-dot"></span>
+                <span>Inference</span>
+            </button>
+        </header>
+
+        <aside class="sidebar" data-sidebar>
+            <div class="sidebar-section">
+                <p class="sidebar-label">Workspace</p>
+                <a class="sidebar-link" href="{{ url_for('index') }}#overview">Dashboard</a>
+                <a class="sidebar-link" href="{{ url_for('index') }}#upload">Upload Image</a>
+                <a class="sidebar-link active" href="#results">Model Results</a>
+                <a class="sidebar-link" href="{{ url_for('index') }}#history">History</a>
+                <a class="sidebar-link" href="{{ url_for('index') }}#settings">Settings</a>
+            </div>
+
+            <div class="sidebar-section sidebar-note">
+                <p class="sidebar-label">Result Notes</p>
+                <p>The saved preview below is the processed image used by the model during inference.</p>
+            </div>
+        </aside>
+
+        <main class="content">
+            <section class="hero-panel compact" id="results">
+                <div class="hero-copy">
+                    <p class="eyebrow">Prediction Outcome</p>
+                    <h1>{{ prediction }}</h1>
+                    <p class="subtitle">Confidence score: {{ confidence }}%</p>
+                    <div class="hero-actions">
+                        <a class="button-link" href="{{ url_for('index') }}#upload">Analyze Another Image</a>
+                        <a class="button-link secondary" href="{{ processed_image_url }}" target="_blank" rel="noopener noreferrer">Open Processed Image</a>
+                    </div>
+                </div>
+
+                <div class="hero-metrics">
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Inference Input</span>
+                        <strong>Processed MRI View</strong>
+                        <p>The model predicted from the cleaned image saved in your workspace.</p>
+                    </article>
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Prediction State</span>
+                        <strong>Classification Complete</strong>
+                        <p>Use the preview and saved file path to review preprocessing quality.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="dashboard-grid results-grid">
+                <article class="dashboard-card result-image-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Processed Input</p>
+                            <h2>Image Used For Inference</h2>
+                        </div>
+                        <span class="tag">Saved</span>
+                    </div>
+                    <div class="result-preview large">
+                        <img src="{{ processed_image_url }}" alt="Processed MRI upload preview" class="processed-preview large">
+                    </div>
+                    <p class="processed-note">Stored at <strong>static/processed_uploads/{{ processed_filename }}</strong></p>
+                </article>
+
+                <article class="dashboard-card metrics-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Interpretation Snapshot</p>
+                            <h2>Result Summary</h2>
+                        </div>
+                        <span class="tag green">Ready</span>
+                    </div>
+                    <div class="metric-grid single-column">
+                        <div class="metric-tile">
+                            <span>Predicted Stage</span>
+                            <strong>{{ prediction }}</strong>
+                            <p>The model selected the most probable stage among the trained impairment classes.</p>
+                        </div>
+                        <div class="metric-tile">
+                            <span>Confidence</span>
+                            <strong>{{ confidence }}%</strong>
+                            <p>Higher confidence means the network was more certain about the selected class on this processed input.</p>
+                        </div>
+                        <div class="metric-tile">
+                            <span>Preprocessing Significance</span>
+                            <strong>Traceable Input</strong>
+                            <p>The stored processed image helps you verify whether cropping, cleanup, and contrast adjustments were reasonable.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+            <a class="mobile-nav-item" href="{{ url_for('index') }}#overview" aria-label="Home" title="Home">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5V14h-6v7H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg>
+            </a>
+            <a class="mobile-nav-item" href="{{ url_for('index') }}#upload" aria-label="Upload" title="Upload">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.29a1 1 0 1 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.41L11 12.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z"/></svg>
+            </a>
+            <a class="mobile-nav-item active" href="#results" aria-label="Results" title="Results">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm1-3h2v-5H6zm5 0h2V9h-2zm5 0h2v-8h-2z"/></svg>
+            </a>
+            <a class="mobile-nav-item" href="{{ url_for('index') }}#settings" aria-label="Profile" title="Profile">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2.24-8 5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-2.76-3.58-5-8-5Z"/></svg>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+        const sidebar = document.querySelector("[data-sidebar]");
+
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener("click", () => {
+                sidebar.classList.toggle("collapsed");
+            });
+        }
+    </script>
+</body>
+</html>
+

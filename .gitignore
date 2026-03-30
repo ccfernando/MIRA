@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+
+data/
+screenshots/
+static/processed_uploads/
+
+alz_model.pth
+
+.DS_Store
+Thumbs.db
