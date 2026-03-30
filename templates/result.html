@@ -63,6 +63,10 @@ Research/education only.
                     <p class="eyebrow">Prediction Outcome</p>
                     <h1>{{ prediction }}</h1>
                     <p class="subtitle">Confidence score: {{ confidence }}%</p>
+                    <div class="confidence-banner {{ confidence_class }}">
+                        <span class="confidence-badge">{{ confidence_label }}</span>
+                        <p>{{ confidence_message }}</p>
+                    </div>
                     <div class="hero-actions">
                         <a class="button-link" href="{{ url_for('index') }}#upload">Analyze Another Image</a>
                         <a class="button-link secondary" href="{{ processed_image_url }}" target="_blank" rel="noopener noreferrer">Open Processed Image</a>
@@ -104,7 +108,7 @@ Research/education only.
                             <p class="card-kicker">Interpretation Snapshot</p>
                             <h2>Result Summary</h2>
                         </div>
-                        <span class="tag green">Ready</span>
+                        <span class="tag {{ confidence_class }}">{{ confidence_label }}</span>
                     </div>
                     <div class="metric-grid single-column">
                         <div class="metric-tile">

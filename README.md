@@ -19,6 +19,7 @@ Research/education only.
 - Flask app for MRI upload and inference
 - preprocessing pipeline for uploaded images before prediction
 - processed upload preservation in `static/processed_uploads/`
+- confidence-based warning states for high, moderate, and low-confidence predictions
 - training dashboard with:
   - loss curves
   - accuracy curves
@@ -134,6 +135,7 @@ The web app:
 - saves the processed image to `static/processed_uploads/`
 - loads the trained checkpoint from `alz_model.pth`
 - runs inference on CPU or GPU depending on availability
+- shows confidence-aware result messaging so uncertain predictions are easier to review
 
 If you use a phone photo of a scan, the app tries to improve it by:
 - correcting orientation
@@ -166,7 +168,6 @@ This keeps the GitHub repo focused on source code and project files.
 
 ## Next Improvements
 
-- add confidence-based warnings in the UI
 - add persistent prediction history
 - add drag-and-drop upload interactions
 - add exportable experiment summaries

@@ -145,6 +145,27 @@ def preprocess_image(image_path: Path) -> torch.Tensor:
     return tensor.to(device)
 
 
+# This function converts a raw confidence score into UI-friendly status messaging.
+def build_confidence_feedback(confidence_score: float) -> Tuple[str, str, str]:
+    if confidence_score >= 85.0:
+        return (
+            "High confidence",
+            "The model is relatively confident on this processed input.",
+            "confidence-high",
+        )
+    if confidence_score >= 65.0:
+        return (
+            "Moderate confidence",
+            "The prediction is usable, but it would be wise to review the processed image and result carefully.",
+            "confidence-medium",
+        )
+    return (
+        "Low confidence",
+        "The model is uncertain on this input. Review the processed image closely and consider trying a cleaner or more direct scan image.",
+        "confidence-low",
+    )
+
+
 # This function creates a model architecture that matches training.
 def build_model(num_classes: int) -> torch.nn.Module:
     model_instance = efficientnet_b0(weights=None)
@@ -222,10 +243,14 @@ def predict():
 
         processed_file_path = process_uploaded_image(temp_file_path, PROCESSED_UPLOADS_DIR)
         prediction, confidence = predict_image(processed_file_path)
+        confidence_label, confidence_message, confidence_class = build_confidence_feedback(confidence)
         return render_template(
             "result.html",
             prediction=prediction,
             confidence=f"{confidence:.2f}",
+            confidence_label=confidence_label,
+            confidence_message=confidence_message,
+            confidence_class=confidence_class,
             processed_image_url=url_for("static", filename=f"processed_uploads/{processed_file_path.name}"),
             processed_filename=processed_file_path.name,
         )
