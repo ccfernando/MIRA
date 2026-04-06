@@ -19,12 +19,13 @@ from __future__ import annotations
 import os
 import tempfile
 import uuid
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
 import torch
-from flask import Flask, flash, redirect, render_template, request, send_from_directory, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, send_file, send_from_directory, url_for
 from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 from torchvision import transforms
 from torchvision.models import efficientnet_b0
@@ -34,7 +35,12 @@ MODEL_PATH = Path("alz_model.pth")
 PROCESSED_UPLOADS_DIR = Path("static") / "processed_uploads"
 SCREENSHOTS_DIR = Path("screenshots")
 ASSETS_DIR = Path("assets")
+CERTS_DIR = Path("certs")
 IMAGE_SIZE = 224
+APP_HOST = os.getenv("MIRA_HOST", "0.0.0.0")
+APP_PORT = int(os.getenv("MIRA_PORT", "5000"))
+USE_HTTPS = os.getenv("MIRA_USE_HTTPS", "1").lower() in {"1", "true", "yes", "on"}
+APP_DEBUG = os.getenv("MIRA_DEBUG", "0").lower() in {"1", "true", "yes", "on"}
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
@@ -53,6 +59,34 @@ app.config["SECRET_KEY"] = "alzheimer-demo-secret-key"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 class_names: List[str] = DEFAULT_CLASSES
+
+
+@lru_cache(maxsize=1)
+def get_local_ca_path() -> Path | None:
+    candidates = [
+        Path(os.getenv("MIRA_LOCAL_CA_PATH", "")),
+        Path.home() / "AppData" / "Local" / "mkcert" / "rootCA.pem",
+        Path.home() / "Library" / "Application Support" / "mkcert" / "rootCA.pem",
+        Path("rootCA.pem"),
+        CERTS_DIR / "rootCA.pem",
+    ]
+
+    for candidate in candidates:
+        if not str(candidate):
+            continue
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def build_install_context() -> dict:
+    local_ca_path = get_local_ca_path()
+    return {
+        "local_ca_available": local_ca_path is not None,
+        "local_ca_download_url": url_for("download_local_ca") if local_ca_path else None,
+        "host_url": request.host_url.rstrip("/"),
+        "install_page_url": url_for("install_page"),
+    }
 
 
 def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
@@ -241,27 +275,50 @@ def predict_image(image_path: Path) -> Tuple[str, float]:
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")
+    return render_template("index.html", **build_install_context())
 
 
 @app.route("/upload", methods=["GET"])
 def upload_page():
-    return render_template("upload.html")
+    return render_template("upload.html", **build_install_context())
 
 
 @app.route("/analytics", methods=["GET"])
 def analytics_page():
-    return render_template("analytics.html", analytics_assets=get_analytics_assets())
+    return render_template("analytics.html", analytics_assets=get_analytics_assets(), **build_install_context())
 
 
 @app.route("/about", methods=["GET"])
 def about_page():
-    return render_template("about.html")
+    return render_template("about.html", **build_install_context())
+
+
+@app.route("/install", methods=["GET"])
+def install_page():
+    return render_template("install.html", **build_install_context())
+
+
+@app.route("/downloads/local-ca", methods=["GET"])
+def download_local_ca():
+    local_ca_path = get_local_ca_path()
+    if local_ca_path is None:
+        abort(404)
+    return send_file(local_ca_path, as_attachment=True, download_name="mira-local-rootCA.pem")
 
 
 @app.route("/artifacts/<path:filename>", methods=["GET"])
 def training_artifact(filename: str):
     return send_from_directory(SCREENSHOTS_DIR.resolve(), filename)
+
+
+@app.route("/manifest.webmanifest", methods=["GET"])
+def web_manifest():
+    return send_from_directory((Path("static")).resolve(), "manifest.webmanifest", mimetype="application/manifest+json")
+
+
+@app.route("/service-worker.js", methods=["GET"])
+def service_worker():
+    return send_from_directory((Path("static")).resolve(), "service-worker.js", mimetype="application/javascript")
 
 
 @app.route("/assets/<path:filename>", methods=["GET"])
@@ -304,6 +361,7 @@ def predict():
             confidence_class=confidence_class,
             processed_image_url=url_for("static", filename=f"processed_uploads/{processed_file_path.name}"),
             processed_filename=processed_file_path.name,
+            **build_install_context(),
         )
     except UnidentifiedImageError:
         flash("The uploaded file is not a valid image.")
@@ -322,4 +380,22 @@ def predict():
 if __name__ == "__main__":
     PROCESSED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     model, class_names = load_trained_model(MODEL_PATH)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    cert_file = CERTS_DIR / "mira-local.pem"
+    key_file = CERTS_DIR / "mira-local-key.pem"
+
+    if USE_HTTPS and cert_file.exists() and key_file.exists():
+        ssl_context = (str(cert_file), str(key_file))
+    elif USE_HTTPS:
+        ssl_context = "adhoc"
+    else:
+        ssl_context = None
+
+    protocol = "https" if ssl_context else "http"
+    print(f"Server ready at {protocol}://127.0.0.1:{APP_PORT} and waiting for requests.")
+    app.run(
+        host=APP_HOST,
+        port=APP_PORT,
+        debug=APP_DEBUG,
+        use_reloader=False,
+        ssl_context=ssl_context,
+    )

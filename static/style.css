@@ -152,6 +152,14 @@ a {
     font-size: 0.85rem;
 }
 
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
 .topnav {
     display: flex;
     align-items: center;
@@ -172,6 +180,66 @@ a {
 .mobile-nav-item:hover {
     color: var(--primary-dark);
     background: rgba(18, 181, 203, 0.1);
+}
+
+.install-button {
+    width: auto;
+    margin-left: auto;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--primary-dark);
+    font-weight: 700;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+.install-button:hover {
+    background: rgba(18, 181, 203, 0.12);
+    border-color: rgba(11, 114, 133, 0.28);
+}
+
+.install-button[hidden] {
+    display: none;
+}
+
+.install-disabled {
+    cursor: default;
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+.install-hero-actions .button-link,
+.install-hero-actions .install-disabled {
+    width: auto;
+}
+
+.install-card {
+    align-self: stretch;
+}
+
+.install-grid {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.install-step strong {
+    margin-bottom: 10px;
+}
+
+.install-guide-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.install-guide {
+    border: 1px solid rgba(18, 88, 110, 0.08);
+}
+
+.install-guide-active {
+    border-color: rgba(11, 114, 133, 0.4);
+    box-shadow: 0 0 0 3px rgba(18, 181, 203, 0.12);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(233, 247, 249, 0.96));
 }
 
 .profile-chip {
@@ -776,6 +844,11 @@ button:disabled {
         display: inline-block;
     }
 
+    .topbar-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
     .topnav {
         display: none;
     }
@@ -833,6 +906,17 @@ button:disabled {
         font-size: 0.82rem;
     }
 
+    .topbar-actions {
+        justify-content: flex-end;
+    }
+
+    .install-button {
+        width: auto;
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 0.82rem;
+    }
+
     h1 {
         font-size: 2.1rem;
     }
@@ -846,6 +930,12 @@ button:disabled {
     .button-link,
     button {
         width: 100%;
+    }
+
+    .topbar-actions .install-button,
+    .install-hero-actions .button-link,
+    .install-hero-actions .install-disabled {
+        width: auto;
     }
 
     .processed-preview.large,

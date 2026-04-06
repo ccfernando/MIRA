@@ -7,6 +7,8 @@ screenshots/
 static/processed_uploads/
 
 alz_model.pth
+certs/
 
 .DS_Store
 Thumbs.db
+https-*.log

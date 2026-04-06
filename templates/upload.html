@@ -9,7 +9,15 @@ Research/education only.
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIRA | Upload</title>
-    <link rel="icon" type="image/png" href="{{ url_for('asset_file', filename='img/mira.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('asset_file', filename='img/mira-favicon-black.png') }}">
+    <meta name="theme-color" content="#0b7285">
+    <meta name="description" content="MIRA local web app for MRI preprocessing, prediction, and phone install support.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MIRA">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('web_manifest') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -24,12 +32,15 @@ Research/education only.
                     <p class="brand-subtitle">Medical Image Recognition for Alzheimer's</p>
                 </div>
             </div>
-            <nav class="topnav" aria-label="Primary navigation">
+            <div class="topbar-actions">
+                <nav class="topnav" aria-label="Primary navigation">
                 <a href="{{ url_for('index') }}">Home</a>
                 <a class="nav-current" href="{{ url_for('upload_page') }}">Upload</a>
                 <a href="{{ url_for('analytics_page') }}">Results</a>
                 <a href="{{ url_for('about_page') }}">About</a>
-            </nav>
+                </nav>
+                <button class="install-button" type="button" data-install-app data-install-help-url="{{ install_page_url }}">Install App</button>
+            </div>
         </header>
         <main class="content">
             {% with messages = get_flashed_messages() %}
@@ -106,5 +117,6 @@ Research/education only.
             });
         }
     </script>
+    <script src="{{ url_for('static', filename='pwa.js', v='3') }}"></script>
 </body>
 </html>

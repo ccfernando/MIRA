@@ -1,0 +1,177 @@
+<!--
+File: templates/install.html
+Purpose: Guide phone users through trusted local HTTPS and web app installation.
+Research/education only.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA | Install</title>
+    <link rel="icon" type="image/png" href="{{ url_for('asset_file', filename='img/mira-favicon-black.png') }}">
+    <meta name="theme-color" content="#0b7285">
+    <meta name="description" content="Install MIRA on iPhone and Android over trusted local HTTPS.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MIRA">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('web_manifest') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell app-shell-simple">
+        <header class="topbar">
+            <div class="brand-lockup">
+                <div class="brand-mark">
+                    <img src="{{ url_for('asset_file', filename='img/mira.png') }}" alt="MIRA logo" class="brand-mark-image">
+                </div>
+                <div>
+                    <p class="brand-name">MIRA</p>
+                    <p class="brand-subtitle">Medical Image Recognition for Alzheimer's</p>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <nav class="topnav" aria-label="Primary navigation">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('upload_page') }}">Upload</a>
+                <a href="{{ url_for('analytics_page') }}">Results</a>
+                <a href="{{ url_for('about_page') }}">About</a>
+                </nav>
+                <button class="install-button" type="button" data-install-app data-install-help-url="{{ install_page_url }}">Install App</button>
+            </div>
+        </header>
+        <main class="content">
+            <section class="hero-panel compact install-hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">Phone Web App Setup</p>
+                    <h1>Install MIRA Like an App</h1>
+                    <p class="subtitle">Use this page to trust your local certificate, install MIRA from the right browser, and reopen it in standalone mode from your Home Screen.</p>
+                    <div class="hero-actions install-hero-actions">
+                        {% if local_ca_available %}
+                            <a class="button-link" href="{{ local_ca_download_url }}">Download Local CA</a>
+                        {% else %}
+                            <span class="button-link secondary install-disabled" aria-disabled="true">Local CA Not Found</span>
+                        {% endif %}
+                        <a class="button-link secondary" href="{{ host_url }}">Open Current Host</a>
+                    </div>
+                    <p class="helper-text">Current server: <strong>{{ host_url }}</strong></p>
+                </div>
+                <div class="hero-metrics">
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">iPhone</span>
+                        <strong>Safari Recommended</strong>
+                        <p>Safari gives the most reliable Home Screen web app behavior on iPhone after the certificate is trusted.</p>
+                    </article>
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Android</span>
+                        <strong>Chrome Native Install</strong>
+                        <p>Android Chrome can use the native install prompt once the site is served over trusted local HTTPS.</p>
+                    </article>
+                </div>
+            </section>
+            <section class="dashboard-grid single-page-grid">
+                <article class="dashboard-card install-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Step 1</p>
+                            <h2>Trust Local HTTPS</h2>
+                        </div>
+                        <span class="tag">Required</span>
+                    </div>
+                    <div class="metric-grid install-grid">
+                        <div class="metric-tile install-step">
+                            <span>1</span>
+                            <strong>Download the local CA</strong>
+                            <p>Use the button above on your phone. This is the local certificate authority that signed MIRA's HTTPS certificate.</p>
+                        </div>
+                        <div class="metric-tile install-step">
+                            <span>2</span>
+                            <strong>Install and trust it</strong>
+                            <p>On iPhone: install the profile, then go to Settings > General > About > Certificate Trust Settings and enable full trust.</p>
+                        </div>
+                        <div class="metric-tile install-step">
+                            <span>3</span>
+                            <strong>Reopen MIRA</strong>
+                            <p>After trust is enabled, reopen <strong>{{ host_url }}</strong>. The privacy warning should be gone before you add it to your Home Screen.</p>
+                        </div>
+                    </div>
+                </article>
+                <article class="dashboard-card install-card install-guides" id="installGuides">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Step 2</p>
+                            <h2>Install From the Right Browser</h2>
+                        </div>
+                        <span class="tag green" id="installGuideBadge">Phone</span>
+                    </div>
+                    <div class="visual-grid install-guide-grid">
+                        <section class="viz-card install-guide" id="guide-ios-safari" data-guide="ios-safari">
+                            <div class="viz-header"><span>iPhone Safari</span><span class="viz-pill">Best on iOS</span></div>
+                            <p class="viz-description">Open MIRA in Safari, tap Share, choose Add to Home Screen, then enable Open as Web App if iOS shows it.</p>
+                        </section>
+                        <section class="viz-card install-guide" id="guide-ios-chrome" data-guide="ios-chrome">
+                            <div class="viz-header"><span>iPhone Chrome</span><span class="viz-pill">Use Safari</span></div>
+                            <p class="viz-description">Chrome on iPhone can add a shortcut, but Safari is the reliable path for a true iPhone web app icon and standalone launch.</p>
+                        </section>
+                        <section class="viz-card install-guide" id="guide-android-chrome" data-guide="android-chrome">
+                            <div class="viz-header"><span>Android Chrome</span><span class="viz-pill">Native Prompt</span></div>
+                            <p class="viz-description">Tap Install App in MIRA. If Chrome does not show the prompt yet, open the Chrome menu and choose Install app or Add to Home screen.</p>
+                        </section>
+                        <section class="viz-card install-guide" id="guide-fallback" data-guide="fallback">
+                            <div class="viz-header"><span>Other Browsers</span><span class="viz-pill">Fallback</span></div>
+                            <p class="viz-description">Use your browser's share or menu actions to add MIRA to the Home Screen. If iPhone behavior is limited, switch to Safari.</p>
+                        </section>
+                    </div>
+                </article>
+                <article class="dashboard-card install-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Step 3</p>
+                            <h2>Refresh Old Installs</h2>
+                        </div>
+                        <span class="tag cyan">Clean Retry</span>
+                    </div>
+                    <div class="metric-grid install-grid">
+                        <div class="metric-tile install-step">
+                            <span>A</span>
+                            <strong>Delete older shortcuts</strong>
+                            <p>Remove any previous MIRA icon that only showed a letter or opened inside a normal browser tab.</p>
+                        </div>
+                        <div class="metric-tile install-step">
+                            <span>B</span>
+                            <strong>Reload after trust</strong>
+                            <p>Open MIRA again after the certificate trust step so the browser sees the latest manifest, icons, and service worker cache.</p>
+                        </div>
+                        <div class="metric-tile install-step">
+                            <span>C</span>
+                            <strong>Add it again</strong>
+                            <p>Re-add MIRA from the browser you want to use. The installed app should launch in standalone mode and use the branded icon.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+            <a class="mobile-nav-item" href="{{ url_for('index') }}" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5V14h-6v7H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('upload_page') }}" aria-label="Upload" title="Upload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.29a1 1 0 1 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.41L11 12.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('analytics_page') }}" aria-label="Results" title="Results"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm1-3h2v-5H6zm5 0h2V9h-2zm5 0h2v-8h-2z"/></svg></a>
+            <a class="mobile-nav-item active" href="{{ url_for('install_page') }}" aria-label="Install" title="Install"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v7.59l2.3-2.29a1 1 0 1 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 1.4-1.41L11 11.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z"/></svg></a>
+        </nav>
+    </div>
+    <script>
+        const installSource = new URLSearchParams(window.location.search).get("source");
+        const badge = document.getElementById("installGuideBadge");
+        const guides = document.querySelectorAll("[data-guide]");
+        const activeGuide = installSource && document.querySelector(`[data-guide="${installSource}"]`);
+        if (activeGuide) {
+            guides.forEach((guide) => guide.classList.remove("install-guide-active"));
+            activeGuide.classList.add("install-guide-active");
+            badge.textContent = activeGuide.querySelector(".viz-header span").textContent;
+            activeGuide.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='pwa.js', v='3') }}"></script>
+</body>
+</html>
