@@ -33,12 +33,12 @@ from torchvision.models import efficientnet_b0
 MODEL_PATH = Path("alz_model.pth")
 PROCESSED_UPLOADS_DIR = Path("static") / "processed_uploads"
 SCREENSHOTS_DIR = Path("screenshots")
+ASSETS_DIR = Path("assets")
 IMAGE_SIZE = 224
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 
-# This list is used as a fallback if the checkpoint does not include class names.
 DEFAULT_CLASSES = [
     "No Impairment",
     "Very Mild Impairment",
@@ -55,7 +55,6 @@ model = None
 class_names: List[str] = DEFAULT_CLASSES
 
 
-# This function returns the most recently modified file that matches a pattern.
 def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
     matching_files = [path for path in directory.glob(pattern) if path.is_file()]
     if not matching_files:
@@ -63,7 +62,6 @@ def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
     return max(matching_files, key=lambda path: path.stat().st_mtime)
 
 
-# This function builds the analytics panel data from the saved training artifacts.
 def get_analytics_assets() -> List[dict]:
     latest_training = SCREENSHOTS_DIR / "latest_training.png"
     latest_gradcam = SCREENSHOTS_DIR / "latest_gradcam.png"
@@ -103,7 +101,6 @@ def get_analytics_assets() -> List[dict]:
     return assets
 
 
-# This function returns the preprocessing pipeline for model inference.
 def get_inference_transform(image_size: int = IMAGE_SIZE) -> transforms.Compose:
     return transforms.Compose(
         [
@@ -114,12 +111,10 @@ def get_inference_transform(image_size: int = IMAGE_SIZE) -> transforms.Compose:
     )
 
 
-# This function verifies whether an uploaded file uses a supported image extension.
 def allowed_file(filename: str) -> bool:
     return Path(filename).suffix.lower() in ALLOWED_EXTENSIONS
 
 
-# This function estimates the main scan area so phone photos can be cropped tighter.
 def detect_scan_bbox(image: Image.Image) -> Tuple[int, int, int, int]:
     grayscale = ImageOps.grayscale(image)
     pixels = np.asarray(grayscale, dtype=np.float32)
@@ -154,7 +149,6 @@ def detect_scan_bbox(image: Image.Image) -> Tuple[int, int, int, int]:
     return (left, top, right, bottom)
 
 
-# This function pads a cropped scan to a square frame for more stable inference.
 def pad_to_square(image: Image.Image, fill_color: int = 0) -> Image.Image:
     width, height = image.size
     if width == height:
@@ -166,7 +160,6 @@ def pad_to_square(image: Image.Image, fill_color: int = 0) -> Image.Image:
     return square_image
 
 
-# This function cleans a phone photo and saves the processed image used for inference.
 def process_uploaded_image(input_path: Path, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -186,7 +179,6 @@ def process_uploaded_image(input_path: Path, output_dir: Path) -> Path:
     return processed_path
 
 
-# This function loads and preprocesses an image for model inference.
 def preprocess_image(image_path: Path) -> torch.Tensor:
     image = Image.open(image_path).convert("RGB")
     transform = get_inference_transform()
@@ -194,14 +186,9 @@ def preprocess_image(image_path: Path) -> torch.Tensor:
     return tensor.to(device)
 
 
-# This function converts a raw confidence score into UI-friendly status messaging.
 def build_confidence_feedback(confidence_score: float) -> Tuple[str, str, str]:
     if confidence_score >= 85.0:
-        return (
-            "High confidence",
-            "The model is relatively confident on this processed input.",
-            "confidence-high",
-        )
+        return ("High confidence", "The model is relatively confident on this processed input.", "confidence-high")
     if confidence_score >= 65.0:
         return (
             "Moderate confidence",
@@ -215,7 +202,6 @@ def build_confidence_feedback(confidence_score: float) -> Tuple[str, str, str]:
     )
 
 
-# This function creates a model architecture that matches training.
 def build_model(num_classes: int) -> torch.nn.Module:
     model_instance = efficientnet_b0(weights=None)
     in_features = model_instance.classifier[1].in_features
@@ -223,23 +209,17 @@ def build_model(num_classes: int) -> torch.nn.Module:
     return model_instance
 
 
-# This function loads the saved checkpoint and prepares the model for inference.
 def load_trained_model(model_path: Path) -> Tuple[torch.nn.Module, List[str]]:
     if not model_path.exists():
-        raise FileNotFoundError(
-            f"Model file not found at {model_path.resolve()}. Run `python train.py` first."
-        )
+        raise FileNotFoundError(f"Model file not found at {model_path.resolve()}. Run `python train.py` first.")
 
     checkpoint = torch.load(model_path, map_location="cpu")
-
     loaded_class_names = checkpoint.get("class_names", DEFAULT_CLASSES)
-    num_classes = len(loaded_class_names)
-    model_instance = build_model(num_classes=num_classes)
+    model_instance = build_model(num_classes=len(loaded_class_names))
 
     if "model_state_dict" in checkpoint:
         model_instance.load_state_dict(checkpoint["model_state_dict"])
     else:
-        # This fallback supports checkpoints that only store a raw state dict.
         model_instance.load_state_dict(checkpoint)
 
     model_instance.to(device)
@@ -247,7 +227,6 @@ def load_trained_model(model_path: Path) -> Tuple[torch.nn.Module, List[str]]:
     return model_instance, loaded_class_names
 
 
-# This function runs prediction and returns both the label and confidence score.
 def predict_image(image_path: Path) -> Tuple[str, float]:
     input_tensor = preprocess_image(image_path)
 
@@ -257,13 +236,27 @@ def predict_image(image_path: Path) -> Tuple[str, float]:
         confidence, predicted_index = torch.max(probabilities, dim=1)
 
     predicted_label = class_names[predicted_index.item()]
-    confidence_score = confidence.item() * 100.0
-    return predicted_label, confidence_score
+    return predicted_label, confidence.item() * 100.0
 
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html", analytics_assets=get_analytics_assets())
+    return render_template("index.html")
+
+
+@app.route("/upload", methods=["GET"])
+def upload_page():
+    return render_template("upload.html")
+
+
+@app.route("/analytics", methods=["GET"])
+def analytics_page():
+    return render_template("analytics.html", analytics_assets=get_analytics_assets())
+
+
+@app.route("/about", methods=["GET"])
+def about_page():
+    return render_template("about.html")
 
 
 @app.route("/artifacts/<path:filename>", methods=["GET"])
@@ -271,24 +264,28 @@ def training_artifact(filename: str):
     return send_from_directory(SCREENSHOTS_DIR.resolve(), filename)
 
 
+@app.route("/assets/<path:filename>", methods=["GET"])
+def asset_file(filename: str):
+    return send_from_directory(ASSETS_DIR.resolve(), filename)
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if "file" not in request.files:
         flash("Please choose an image file before submitting.")
-        return redirect(url_for("index"))
+        return redirect(url_for("upload_page"))
 
     uploaded_file = request.files["file"]
 
     if uploaded_file.filename == "":
         flash("No file selected. Please upload an image.")
-        return redirect(url_for("index"))
+        return redirect(url_for("upload_page"))
 
     if not allowed_file(uploaded_file.filename):
         flash("Unsupported file type. Please upload a JPG, JPEG, PNG, or BMP image.")
-        return redirect(url_for("index"))
+        return redirect(url_for("upload_page"))
 
     temp_file_path: Path | None = None
-    processed_file_path: Path | None = None
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.filename).suffix) as temp_file:
@@ -310,10 +307,10 @@ def predict():
         )
     except UnidentifiedImageError:
         flash("The uploaded file is not a valid image.")
-        return redirect(url_for("index"))
+        return redirect(url_for("upload_page"))
     except Exception as exc:
         flash(f"Prediction failed: {exc}")
-        return redirect(url_for("index"))
+        return redirect(url_for("upload_page"))
     finally:
         if temp_file_path is not None and temp_file_path.exists():
             try:

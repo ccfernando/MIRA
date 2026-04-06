@@ -1,0 +1,94 @@
+<!--
+File: templates/analytics.html
+Purpose: Display the dedicated analytics and saved visualizations page.
+Research/education only.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA | Results</title>
+    <link rel="icon" type="image/png" href="{{ url_for('asset_file', filename='img/mira.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell app-shell-simple">
+        <header class="topbar">
+            <div class="brand-lockup">
+                <div class="brand-mark">
+                    <img src="{{ url_for('asset_file', filename='img/mira.png') }}" alt="MIRA logo" class="brand-mark-image">
+                </div>
+                <div>
+                    <p class="brand-name">MIRA</p>
+                    <p class="brand-subtitle">Medical Image Recognition for Alzheimer's</p>
+                </div>
+            </div>
+            <nav class="topnav" aria-label="Primary navigation">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('upload_page') }}">Upload</a>
+                <a class="nav-current" href="{{ url_for('analytics_page') }}">Results</a>
+                <a href="{{ url_for('about_page') }}">About</a>
+            </nav>
+        </header>
+        <main class="content">
+            <section class="hero-panel compact">
+                <div class="hero-copy">
+                    <p class="eyebrow">Analytics Surface</p>
+                    <h1>Research Visualizations</h1>
+                    <p class="subtitle">Review the latest saved training dashboard, confusion matrix, and Grad-CAM outputs in one dedicated page.</p>
+                </div>
+                <div class="hero-metrics">
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Training Curves</span>
+                        <strong>Loss + Accuracy</strong>
+                        <p>Latest dashboard snapshots exported from training runs.</p>
+                    </article>
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Attention Maps</span>
+                        <strong>Grad-CAM Focus</strong>
+                        <p>See which regions the model emphasized during evaluation.</p>
+                    </article>
+                </div>
+            </section>
+            <section class="dashboard-grid single-page-grid">
+                <article class="dashboard-card insights-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Documentation Ready</p>
+                            <h2>Saved Outputs</h2>
+                        </div>
+                        <span class="tag cyan">Latest</span>
+                    </div>
+                    <div class="visual-grid">
+                        {% for asset in analytics_assets %}
+                            <div class="viz-card">
+                                <div class="viz-header">
+                                    <span>{{ asset.title }}</span>
+                                    <span class="viz-pill">{{ asset.pill }}</span>
+                                </div>
+                                {% if asset.image_url %}
+                                    <a href="{{ asset.open_url }}" target="_blank" rel="noopener noreferrer" class="viz-image-link" title="Open full-size visualization">
+                                        <img src="{{ asset.image_url }}" alt="{{ asset.title }}" class="viz-image">
+                                    </a>
+                                {% else %}
+                                    <div class="fake-chart chart-empty">
+                                        <p>No saved visualization yet. Run training to populate this panel.</p>
+                                    </div>
+                                {% endif %}
+                                <p class="viz-description">{{ asset.description }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+        </main>
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+            <a class="mobile-nav-item" href="{{ url_for('index') }}" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5V14h-6v7H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('upload_page') }}" aria-label="Upload" title="Upload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.29a1 1 0 1 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.41L11 12.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z"/></svg></a>
+            <a class="mobile-nav-item active" href="{{ url_for('analytics_page') }}" aria-label="Results" title="Results"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm1-3h2v-5H6zm5 0h2V9h-2zm5 0h2v-8h-2z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('about_page') }}" aria-label="About" title="About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 5a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 7Zm1.5 10h-3a1 1 0 0 1 0-2h.5v-3H10.5a1 1 0 0 1 0-2H12a1 1 0 0 1 1 1v4h.5a1 1 0 0 1 0 2Z"/></svg></a>
+        </nav>
+    </div>
+</body>
+</html>

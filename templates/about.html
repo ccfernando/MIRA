@@ -1,0 +1,63 @@
+<!--
+File: templates/about.html
+Purpose: Display the dedicated about page for the MIRA project.
+Research/education only.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA | About</title>
+    <link rel="icon" type="image/png" href="{{ url_for('asset_file', filename='img/mira.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell app-shell-simple">
+        <header class="topbar">
+            <div class="brand-lockup">
+                <div class="brand-mark">
+                    <img src="{{ url_for('asset_file', filename='img/mira.png') }}" alt="MIRA logo" class="brand-mark-image">
+                </div>
+                <div>
+                    <p class="brand-name">MIRA</p>
+                    <p class="brand-subtitle">Medical Image Recognition for Alzheimer's</p>
+                </div>
+            </div>
+            <nav class="topnav" aria-label="Primary navigation">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('upload_page') }}">Upload</a>
+                <a href="{{ url_for('analytics_page') }}">Results</a>
+                <a class="nav-current" href="{{ url_for('about_page') }}">About</a>
+            </nav>
+        </header>
+        <main class="content">
+            <section class="hero-panel compact">
+                <div class="hero-copy">
+                    <p class="eyebrow">About MIRA</p>
+                    <h1>Professional Medical AI Workflow</h1>
+                    <p class="subtitle">MIRA is designed as a compact research dashboard for Alzheimer's MRI experimentation, pairing a clean operator experience with transparent visual outputs that are easier to review, present, and document.</p>
+                </div>
+                <div class="hero-metrics">
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Purpose</span>
+                        <strong>Research Support</strong>
+                        <p>Streamline image intake, model inference, and result inspection in one project.</p>
+                    </article>
+                    <article class="mini-stat-card">
+                        <span class="mini-stat-label">Workflow</span>
+                        <strong>Transparent Review</strong>
+                        <p>Saved processed images and visual artifacts make outputs easier to inspect and discuss.</p>
+                    </article>
+                </div>
+            </section>
+        </main>
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+            <a class="mobile-nav-item" href="{{ url_for('index') }}" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5V14h-6v7H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('upload_page') }}" aria-label="Upload" title="Upload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.29a1 1 0 1 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.41L11 12.59V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z"/></svg></a>
+            <a class="mobile-nav-item" href="{{ url_for('analytics_page') }}" aria-label="Results" title="Results"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm1-3h2v-5H6zm5 0h2V9h-2zm5 0h2v-8h-2z"/></svg></a>
+            <a class="mobile-nav-item active" href="{{ url_for('about_page') }}" aria-label="About" title="About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 5a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 7Zm1.5 10h-3a1 1 0 0 1 0-2h.5v-3H10.5a1 1 0 0 1 0-2H12a1 1 0 0 1 1 1v4h.5a1 1 0 0 1 0 2Z"/></svg></a>
+        </nav>
+    </div>
+</body>
+</html>

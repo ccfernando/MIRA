@@ -69,8 +69,18 @@ a {
     padding: 20px 20px 96px;
 }
 
+.app-shell-simple {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "topbar"
+        "content";
+}
+
 .topbar {
     grid-area: topbar;
+    position: sticky;
+    top: 16px;
+    z-index: 30;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -88,18 +98,27 @@ a {
     align-items: center;
     gap: 14px;
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .brand-mark {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+    width: 52px;
+    height: 52px;
+    padding: 6px;
+    border-radius: 16px;
     display: grid;
     place-items: center;
-    color: #ffffff;
-    font-weight: 800;
+    overflow: hidden;
+    flex-shrink: 0;
     background: linear-gradient(135deg, var(--primary), var(--accent));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.brand-mark-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .brand-name,
@@ -148,6 +167,7 @@ a {
 }
 
 .topnav a:hover,
+.topnav a.nav-current,
 .sidebar-link:hover,
 .mobile-nav-item:hover {
     color: var(--primary-dark);
@@ -164,6 +184,7 @@ a {
     background: linear-gradient(180deg, #ffffff, #eff8fa);
     color: var(--text);
     font-weight: 700;
+    flex-shrink: 0;
 }
 
 .status-dot {
@@ -409,6 +430,10 @@ button:hover {
     grid-template-columns: 1fr 1fr;
 }
 
+.single-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .section-heading {
     display: flex;
     align-items: flex-start;
@@ -526,7 +551,7 @@ button:hover {
     display: block;
     width: 100%;
     height: 220px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 18px;
     border: 1px solid rgba(18, 88, 110, 0.08);
     background: #eff8fa;
@@ -632,7 +657,7 @@ button:hover {
     width: 100%;
     max-width: 460px;
     aspect-ratio: 1 / 1;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .processed-note {
@@ -777,8 +802,35 @@ button:disabled {
         padding: 20px;
     }
 
+    .topbar {
+        top: 12px;
+        gap: 12px;
+    }
+
+    .brand-lockup {
+        gap: 10px;
+    }
+
+    .brand-mark {
+        width: 44px;
+        height: 44px;
+        padding: 5px;
+        border-radius: 14px;
+    }
+
     .brand-subtitle {
         display: none;
+    }
+
+    .brand-name {
+        font-size: 0.95rem;
+        letter-spacing: 0.05em;
+    }
+
+    .profile-chip {
+        min-height: 40px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
     }
 
     h1 {
@@ -812,4 +864,8 @@ button:disabled {
         transition: none !important;
     }
 }
+
+
+
+
 
