@@ -18,7 +18,7 @@ Research/education only.
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('web_manifest') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='3') }}">
 </head>
 <body>
     <div class="app-shell app-shell-simple">
@@ -58,18 +58,18 @@ Research/education only.
                 <div class="hero-copy">
                     <p class="eyebrow">Upload Console</p>
                     <h1>Submit MRI Image</h1>
-                    <p class="subtitle">Upload an MRI image or a phone photo of a scan. MIRA will crop, normalize, and preserve the processed version before classification.</p>
+                    <p class="subtitle">Upload an MRI image or a phone photo of a scan. MIRA will orient the image correctly, preserve a preview, and run the same resize-and-normalize inference path used by the current model.</p>
                 </div>
                 <div class="hero-metrics">
                     <article class="mini-stat-card">
                         <span class="mini-stat-label">Accepted Files</span>
                         <strong>JPG, JPEG, PNG, BMP</strong>
-                        <p>Use a clear scan image for more reliable preprocessing and classification.</p>
+                        <p>Use a clear scan image for more reliable inference and review.</p>
                     </article>
                     <article class="mini-stat-card">
                         <span class="mini-stat-label">Saved Output</span>
                         <strong>Processed Upload</strong>
-                        <p>The cleaned image used for inference is stored so you can review it later.</p>
+                        <p>A saved preview helps you verify what was submitted alongside the generated prediction.</p>
                     </article>
                 </div>
             </section>
@@ -117,6 +117,7 @@ Research/education only.
             });
         }
     </script>
-    <script src="{{ url_for('static', filename='pwa.js', v='3') }}"></script>
+    <script src="{{ url_for('static', filename='pwa.js', v='4') }}"></script>
 </body>
 </html>
+

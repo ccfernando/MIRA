@@ -18,7 +18,7 @@ Research/education only.
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('web_manifest') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='3') }}">
 </head>
 <body>
     <div class="app-shell app-shell-simple">
@@ -101,6 +101,7 @@ Research/education only.
             <a class="mobile-nav-item" href="{{ url_for('about_page') }}" aria-label="About" title="About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 5a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 7Zm1.5 10h-3a1 1 0 0 1 0-2h.5v-3H10.5a1 1 0 0 1 0-2H12a1 1 0 0 1 1 1v4h.5a1 1 0 0 1 0 2Z"/></svg></a>
         </nav>
     </div>
-    <script src="{{ url_for('static', filename='pwa.js', v='3') }}"></script>
+    <script src="{{ url_for('static', filename='pwa.js', v='4') }}"></script>
 </body>
 </html>
+

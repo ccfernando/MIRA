@@ -7,7 +7,7 @@ Medical Image Recognition for Alzheimer's
 [![PyTorch](https://img.shields.io/badge/PyTorch-EfficientNet%20Pipeline-ee4c2c.svg)](https://pytorch.org/)
 [![Status](https://img.shields.io/badge/Status-Research%20Project-12b5cb.svg)](#)
 
-MIRA is a Flask + PyTorch web application for classifying Alzheimer's disease stages from MRI images using an EfficientNet-B0 model. It combines model training, MRI upload inference, phone-photo preprocessing, PWA install support, and research outputs such as training dashboards, confusion matrices, Grad-CAM visualizations, and markdown reports.
+MIRA is a Flask + PyTorch web application for classifying Alzheimer's disease stages from MRI images using an EfficientNet-B0 model. It combines model training, MRI upload inference, PWA install support, and research outputs such as training dashboards, confusion matrices, Grad-CAM visualizations, and markdown reports.
 
 This project is intended for research and education only.
 
@@ -23,7 +23,7 @@ The app uses separate pages instead of a single scrolling dashboard:
 - `Home` for the overview and system summary
 - `Upload` for MRI submission
 - `Results` for saved training visualizations
-- `About` for project context
+- `About` for project context and documentation links
 - `Install` for local HTTPS trust and phone web app setup
 - `Prediction Result` for the outcome of a specific uploaded image
 
@@ -52,17 +52,16 @@ The app uses separate pages instead of a single scrolling dashboard:
 - Local certificate download route for phone trust setup
 - Manifest, service worker, and standalone install metadata for Home Screen launch
 - Separate app icons for browser tab favicon vs installed phone web app icon
+- In-app links to markdown and PDF documentation from the About page
 
-### Image Preprocessing
+### Image Handling During Inference
 
 - Accepts `.jpg`, `.jpeg`, `.png`, and `.bmp`
 - Handles direct image uploads and phone photos of scans
 - Automatically corrects image orientation
-- Automatically estimates and crops the scan region
-- Automatically enhances grayscale contrast
-- Automatically sharpens and normalizes the image
-- Automatically pads to a square frame
-- Automatically resizes to the model input size
+- Saves a reviewable preview image for the result page
+- Resizes directly to the model input size for inference consistency
+- Applies ImageNet normalization before prediction
 
 ## Tech Stack
 
@@ -168,6 +167,16 @@ Optional environment variables:
 - `MIRA_USE_HTTPS=0` to disable HTTPS
 - `MIRA_DEBUG=1` to enable Flask debug mode
 - `MIRA_LOCAL_CA_PATH` to point to a specific `rootCA.pem`
+- `MIRA_SECRET_KEY` to provide a stable Flask secret key
+- `MIRA_MAX_UPLOAD_MB` to cap upload size in megabytes
+
+## Documentation
+
+The project now keeps two documentation formats:
+
+- `docs/MIRA-Production-Guide.md` as the version-controlled source of truth
+- `static/docs/MIRA-Production-Guide.md` as the app-served markdown copy linked from the About page
+- `static/docs/mira-production-guide.pdf` as a shareable exported artifact linked from the About page
 
 ## HTTPS Setup
 
@@ -247,7 +256,7 @@ The Flask app currently exposes these main routes:
 - `/` -> Home page
 - `/upload` -> MRI upload page
 - `/analytics` -> saved training visualizations page
-- `/about` -> project summary page
+- `/about` -> project summary and documentation links page
 - `/install` -> phone install and HTTPS trust guide
 - `/downloads/local-ca` -> download the local CA file for phone trust setup
 - `/predict` -> POST route for inference
@@ -260,16 +269,16 @@ The Flask app currently exposes these main routes:
 
 When a user uploads an image:
 
-1. The file type is validated
-2. The image is temporarily saved
-3. The image is preprocessed for inference
-4. The processed image is saved to `static/processed_uploads/`
-5. The model predicts the Alzheimer's stage
-6. Confidence messaging is generated
-7. The result page shows the predicted class
-8. The result page shows the confidence score
-9. The result page shows the confidence label
-10. The result page shows the processed preview image
+1. The file type is validated.
+2. The image is temporarily saved.
+3. The image is oriented and resized for inference.
+4. A reviewable preview image is saved.
+5. The model predicts the Alzheimer's stage.
+6. Confidence messaging is generated.
+7. The result page shows the predicted class.
+8. The result page shows the confidence score.
+9. The result page shows the confidence label.
+10. The result page shows the processed preview image.
 
 ## Training Outputs
 
@@ -287,8 +296,11 @@ Typical outputs created during or after training:
 MIRA/
 |-- app.py
 |-- train.py
+|-- generate_docs_pdf.py
 |-- requirements.txt
 |-- README.md
+|-- docs/
+|   `-- MIRA-Production-Guide.md
 |-- assets/
 |   `-- img/
 |       |-- mira.png
@@ -308,6 +320,9 @@ MIRA/
 |   |-- pwa.js
 |   |-- service-worker.js
 |   |-- style.css
+|   |-- docs/
+|   |   |-- MIRA-Production-Guide.md
+|   |   `-- mira-production-guide.pdf
 |   |-- icons/
 |   `-- processed_uploads/
 |-- screenshots/

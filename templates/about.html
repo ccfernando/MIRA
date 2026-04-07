@@ -18,7 +18,7 @@ Research/education only.
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('web_manifest') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='3') }}">
 </head>
 <body>
     <div class="app-shell app-shell-simple">
@@ -46,21 +46,76 @@ Research/education only.
             <section class="hero-panel compact">
                 <div class="hero-copy">
                     <p class="eyebrow">About MIRA</p>
-                    <h1>Professional Medical AI Workflow</h1>
-                    <p class="subtitle">MIRA is designed as a compact research dashboard for Alzheimer's MRI experimentation, pairing a clean operator experience with transparent visual outputs that are easier to review, present, and document.</p>
+                    <h1>Research Workflow With Safer App Defaults</h1>
+                    <p class="subtitle">MIRA is a Flask and PyTorch research application for Alzheimer's MRI experimentation. The current build focuses on clearer configuration, safer upload handling, better operational guardrails, and documentation you can review or share.</p>
                 </div>
                 <div class="hero-metrics">
                     <article class="mini-stat-card">
-                        <span class="mini-stat-label">Purpose</span>
+                        <span class="mini-stat-label">Scope</span>
                         <strong>Research Support</strong>
-                        <p>Streamline image intake, model inference, and result inspection in one project.</p>
+                        <p>Designed for experimentation, demonstrations, and documentation rather than clinical deployment.</p>
                     </article>
                     <article class="mini-stat-card">
-                        <span class="mini-stat-label">Workflow</span>
-                        <strong>Transparent Review</strong>
-                        <p>Saved processed images and visual artifacts make outputs easier to inspect and discuss.</p>
+                        <span class="mini-stat-label">Standards Pass</span>
+                        <strong>Safer Defaults</strong>
+                        <p>Configuration, error handling, file-size limits, logging, and shareable docs were tightened in this revision.</p>
                     </article>
                 </div>
+            </section>
+            <section class="dashboard-grid single-page-grid">
+                <article class="dashboard-card about-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Documentation</p>
+                            <h2>Project And Production Notes</h2>
+                        </div>
+                        <span class="tag cyan">Updated</span>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-tile">
+                            <span>Primary Format</span>
+                            <strong>Markdown Source</strong>
+                            <p>The canonical documentation stays in version control so it is easy to maintain alongside the codebase.</p>
+                            <p><a class="inline-doc-link" href="{{ documentation_markdown_url }}" target="_blank" rel="noopener">Open markdown guide</a></p>
+                        </div>
+                        <div class="metric-tile">
+                            <span>Shareable Format</span>
+                            <strong>PDF Export</strong>
+                            <p>A PDF version is included for presentation, review, and offline sharing when you need a polished handoff.</p>
+                            <p><a class="inline-doc-link" href="{{ documentation_pdf_url }}" target="_blank" rel="noopener">Open PDF guide</a></p>
+                        </div>
+                        <div class="metric-tile">
+                            <span>What Changed</span>
+                            <strong>Production-Oriented Cleanup</strong>
+                            <p>Secrets moved to environment-based config, upload size is capped, the model loads through a cached accessor, and unexpected server errors are logged instead of surfaced directly to users.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+            <section class="dashboard-grid single-page-grid">
+                <article class="dashboard-card about-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="card-kicker">Operating Notes</p>
+                            <h2>Current Readiness</h2>
+                        </div>
+                        <span class="tag">Research Only</span>
+                    </div>
+                    <div class="metric-grid single-column">
+                        <div class="metric-tile">
+                            <span>Deployment Guidance</span>
+                            <strong>Good Local Research App, Not A Clinical Production System</strong>
+                            <p>MIRA is now in better shape for maintainability and safer local use, but a true production healthcare deployment would still need stronger authentication, audit logging, formal validation, model versioning, privacy controls, monitoring, and infrastructure beyond Flask's built-in server.</p>
+                        </div>
+                        {% if server_error %}
+                        <div class="metric-tile">
+                            <span>Status</span>
+                            <strong>Recent Server Error Logged</strong>
+                            <p>An unexpected server error occurred and was logged on the host machine. Review the console output to inspect the stack trace.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </article>
             </section>
         </main>
         <nav class="mobile-nav" aria-label="Mobile navigation">
@@ -70,6 +125,6 @@ Research/education only.
             <a class="mobile-nav-item active" href="{{ url_for('about_page') }}" aria-label="About" title="About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 5a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 7Zm1.5 10h-3a1 1 0 0 1 0-2h.5v-3H10.5a1 1 0 0 1 0-2H12a1 1 0 0 1 1 1v4h.5a1 1 0 0 1 0 2Z"/></svg></a>
         </nav>
     </div>
-    <script src="{{ url_for('static', filename='pwa.js', v='3') }}"></script>
+    <script src="{{ url_for('static', filename='pwa.js', v='4') }}"></script>
 </body>
 </html>

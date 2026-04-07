@@ -16,27 +16,32 @@ Run:
 
 from __future__ import annotations
 
+import logging
 import os
+import secrets
 import tempfile
 import uuid
 from functools import lru_cache
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
 import torch
 from flask import Flask, abort, flash, redirect, render_template, request, send_file, send_from_directory, url_for
-from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from torchvision import transforms
 from torchvision.models import efficientnet_b0
 
 
-MODEL_PATH = Path("alz_model.pth")
-PROCESSED_UPLOADS_DIR = Path("static") / "processed_uploads"
-SCREENSHOTS_DIR = Path("screenshots")
-ASSETS_DIR = Path("assets")
-CERTS_DIR = Path("certs")
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "alz_model.pth"
+PROCESSED_UPLOADS_DIR = BASE_DIR / "static" / "processed_uploads"
+SCREENSHOTS_DIR = BASE_DIR / "screenshots"
+ASSETS_DIR = BASE_DIR / "assets"
+CERTS_DIR = BASE_DIR / "certs"
+STATIC_DIR = BASE_DIR / "static"
+DOCS_STATIC_DIR = STATIC_DIR / "docs"
 IMAGE_SIZE = 224
+DEFAULT_MAX_UPLOAD_MB = 10
 APP_HOST = os.getenv("MIRA_HOST", "0.0.0.0")
 APP_PORT = int(os.getenv("MIRA_PORT", "5000"))
 USE_HTTPS = os.getenv("MIRA_USE_HTTPS", "1").lower() in {"1", "true", "yes", "on"}
@@ -53,12 +58,17 @@ DEFAULT_CLASSES = [
 ]
 
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = "alzheimer-demo-secret-key"
+logger = logging.getLogger(__name__)
+
+
+def configure_logging() -> None:
+    logging.basicConfig(
+        level=logging.DEBUG if APP_DEBUG else logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = None
-class_names: List[str] = DEFAULT_CLASSES
 
 
 @lru_cache(maxsize=1)
@@ -67,7 +77,7 @@ def get_local_ca_path() -> Path | None:
         Path(os.getenv("MIRA_LOCAL_CA_PATH", "")),
         Path.home() / "AppData" / "Local" / "mkcert" / "rootCA.pem",
         Path.home() / "Library" / "Application Support" / "mkcert" / "rootCA.pem",
-        Path("rootCA.pem"),
+        BASE_DIR / "rootCA.pem",
         CERTS_DIR / "rootCA.pem",
     ]
 
@@ -79,6 +89,18 @@ def get_local_ca_path() -> Path | None:
     return None
 
 
+def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
+    matching_files = [path for path in directory.glob(pattern) if path.is_file()]
+    if not matching_files:
+        return None
+    return max(matching_files, key=lambda path: path.stat().st_mtime)
+
+
+@lru_cache(maxsize=1)
+def get_model_bundle() -> Tuple[torch.nn.Module, List[str]]:
+    return load_trained_model(MODEL_PATH)
+
+
 def build_install_context() -> dict:
     local_ca_path = get_local_ca_path()
     return {
@@ -86,14 +108,9 @@ def build_install_context() -> dict:
         "local_ca_download_url": url_for("download_local_ca") if local_ca_path else None,
         "host_url": request.host_url.rstrip("/"),
         "install_page_url": url_for("install_page"),
+        "documentation_markdown_url": url_for("static", filename="docs/MIRA-Production-Guide.md"),
+        "documentation_pdf_url": url_for("static", filename="docs/mira-production-guide.pdf"),
     }
-
-
-def get_latest_matching_file(directory: Path, pattern: str) -> Path | None:
-    matching_files = [path for path in directory.glob(pattern) if path.is_file()]
-    if not matching_files:
-        return None
-    return max(matching_files, key=lambda path: path.stat().st_mtime)
 
 
 def get_analytics_assets() -> List[dict]:
@@ -149,72 +166,38 @@ def allowed_file(filename: str) -> bool:
     return Path(filename).suffix.lower() in ALLOWED_EXTENSIONS
 
 
-def detect_scan_bbox(image: Image.Image) -> Tuple[int, int, int, int]:
-    grayscale = ImageOps.grayscale(image)
-    pixels = np.asarray(grayscale, dtype=np.float32)
-    height, width = pixels.shape
-
-    border_pixels = np.concatenate([pixels[0, :], pixels[-1, :], pixels[:, 0], pixels[:, -1]])
-    background_level = float(np.median(border_pixels))
-    contrast_scale = max(12.0, float(np.std(border_pixels) * 2.5))
-
-    foreground_mask = np.abs(pixels - background_level) > contrast_scale
-    if foreground_mask.mean() < 0.01:
-        dynamic_range = float(np.percentile(pixels, 90) - np.percentile(pixels, 10))
-        contrast_scale = max(10.0, dynamic_range * 0.18)
-        if background_level > float(pixels.mean()):
-            foreground_mask = pixels < (background_level - contrast_scale)
-        else:
-            foreground_mask = pixels > (background_level + contrast_scale)
-
-    if foreground_mask.mean() < 0.005:
-        return (0, 0, width, height)
-
-    coordinates = np.argwhere(foreground_mask)
-    top, left = coordinates.min(axis=0)
-    bottom, right = coordinates.max(axis=0)
-    pad_y = max(10, int((bottom - top + 1) * 0.08))
-    pad_x = max(10, int((right - left + 1) * 0.08))
-
-    left = max(0, int(left - pad_x))
-    top = max(0, int(top - pad_y))
-    right = min(width, int(right + pad_x))
-    bottom = min(height, int(bottom + pad_y))
-    return (left, top, right, bottom)
-
-
-def pad_to_square(image: Image.Image, fill_color: int = 0) -> Image.Image:
-    width, height = image.size
-    if width == height:
-        return image
-
-    side_length = max(width, height)
-    square_image = Image.new("L", (side_length, side_length), color=fill_color)
-    square_image.paste(image, ((side_length - width) // 2, (side_length - height) // 2))
-    return square_image
-
-
 def process_uploaded_image(input_path: Path, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    image = Image.open(input_path)
-    image = ImageOps.exif_transpose(image).convert("RGB")
-    cropped_image = image.crop(detect_scan_bbox(image))
+    with Image.open(input_path) as image_file:
+        image = ImageOps.exif_transpose(image_file).convert("RGB")
 
-    grayscale = ImageOps.grayscale(cropped_image)
-    enhanced = ImageOps.autocontrast(grayscale, cutoff=1)
-    enhanced = ImageOps.equalize(enhanced)
-    enhanced = enhanced.filter(ImageFilter.SHARPEN)
-    square_image = pad_to_square(enhanced, fill_color=0)
-    final_image = square_image.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.BILINEAR).convert("RGB")
+    # Keep inference preprocessing aligned with the training pipeline.
+    final_image = image.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.BILINEAR)
 
     processed_path = output_dir / f"{uuid.uuid4().hex}.png"
     final_image.save(processed_path, format="PNG")
     return processed_path
 
 
+def save_preview_image(input_path: Path, output_dir: Path) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with Image.open(input_path) as image_file:
+        image = ImageOps.exif_transpose(image_file).convert("RGB")
+
+    preview_image = image.copy()
+    preview_image.thumbnail((640, 640), Image.Resampling.BILINEAR)
+
+    preview_path = output_dir / f"{uuid.uuid4().hex}_preview.png"
+    preview_image.save(preview_path, format="PNG")
+    return preview_path
+
+
 def preprocess_image(image_path: Path) -> torch.Tensor:
-    image = Image.open(image_path).convert("RGB")
+    with Image.open(image_path) as image_file:
+        image = image_file.convert("RGB")
+
     transform = get_inference_transform()
     tensor = transform(image).unsqueeze(0)
     return tensor.to(device)
@@ -258,10 +241,12 @@ def load_trained_model(model_path: Path) -> Tuple[torch.nn.Module, List[str]]:
 
     model_instance.to(device)
     model_instance.eval()
+    logger.info("Model loaded from %s on %s", model_path, device)
     return model_instance, loaded_class_names
 
 
 def predict_image(image_path: Path) -> Tuple[str, float]:
+    model, class_names = get_model_bundle()
     input_tensor = preprocess_image(image_path)
 
     with torch.no_grad():
@@ -273,125 +258,166 @@ def predict_image(image_path: Path) -> Tuple[str, float]:
     return predicted_label, confidence.item() * 100.0
 
 
-@app.route("/", methods=["GET"])
-def index():
-    return render_template("index.html", **build_install_context())
+def create_app() -> Flask:
+    app = Flask(__name__)
+    app.config.update(
+        SECRET_KEY=os.getenv("MIRA_SECRET_KEY") or secrets.token_hex(32),
+        MAX_CONTENT_LENGTH=int(os.getenv("MIRA_MAX_UPLOAD_MB", str(DEFAULT_MAX_UPLOAD_MB))) * 1024 * 1024,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=USE_HTTPS,
+        TEMPLATES_AUTO_RELOAD=APP_DEBUG,
+    )
 
+    @app.after_request
+    def add_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
 
-@app.route("/upload", methods=["GET"])
-def upload_page():
-    return render_template("upload.html", **build_install_context())
-
-
-@app.route("/analytics", methods=["GET"])
-def analytics_page():
-    return render_template("analytics.html", analytics_assets=get_analytics_assets(), **build_install_context())
-
-
-@app.route("/about", methods=["GET"])
-def about_page():
-    return render_template("about.html", **build_install_context())
-
-
-@app.route("/install", methods=["GET"])
-def install_page():
-    return render_template("install.html", **build_install_context())
-
-
-@app.route("/downloads/local-ca", methods=["GET"])
-def download_local_ca():
-    local_ca_path = get_local_ca_path()
-    if local_ca_path is None:
-        abort(404)
-    return send_file(local_ca_path, as_attachment=True, download_name="mira-local-rootCA.pem")
-
-
-@app.route("/artifacts/<path:filename>", methods=["GET"])
-def training_artifact(filename: str):
-    return send_from_directory(SCREENSHOTS_DIR.resolve(), filename)
-
-
-@app.route("/manifest.webmanifest", methods=["GET"])
-def web_manifest():
-    return send_from_directory((Path("static")).resolve(), "manifest.webmanifest", mimetype="application/manifest+json")
-
-
-@app.route("/service-worker.js", methods=["GET"])
-def service_worker():
-    return send_from_directory((Path("static")).resolve(), "service-worker.js", mimetype="application/javascript")
-
-
-@app.route("/assets/<path:filename>", methods=["GET"])
-def asset_file(filename: str):
-    return send_from_directory(ASSETS_DIR.resolve(), filename)
-
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    if "file" not in request.files:
-        flash("Please choose an image file before submitting.")
+    @app.errorhandler(413)
+    def request_entity_too_large(_error):
+        flash(f"Upload too large. Keep files under {app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)} MB.")
         return redirect(url_for("upload_page"))
 
-    uploaded_file = request.files["file"]
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        logger.exception("Unhandled server error: %s", error)
+        return render_template("about.html", server_error=True, **build_install_context()), 500
 
-    if uploaded_file.filename == "":
-        flash("No file selected. Please upload an image.")
-        return redirect(url_for("upload_page"))
+    @app.route("/", methods=["GET"])
+    def index():
+        return render_template("index.html", **build_install_context())
 
-    if not allowed_file(uploaded_file.filename):
-        flash("Unsupported file type. Please upload a JPG, JPEG, PNG, or BMP image.")
-        return redirect(url_for("upload_page"))
+    @app.route("/upload", methods=["GET"])
+    def upload_page():
+        return render_template("upload.html", **build_install_context())
 
-    temp_file_path: Path | None = None
+    @app.route("/analytics", methods=["GET"])
+    def analytics_page():
+        return render_template("analytics.html", analytics_assets=get_analytics_assets(), **build_install_context())
 
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.filename).suffix) as temp_file:
-            uploaded_file.save(temp_file.name)
-            temp_file_path = Path(temp_file.name)
+    @app.route("/about", methods=["GET"])
+    def about_page():
+        return render_template("about.html", server_error=False, **build_install_context())
 
-        processed_file_path = process_uploaded_image(temp_file_path, PROCESSED_UPLOADS_DIR)
-        prediction, confidence = predict_image(processed_file_path)
-        confidence_label, confidence_message, confidence_class = build_confidence_feedback(confidence)
-        return render_template(
-            "result.html",
-            prediction=prediction,
-            confidence=f"{confidence:.2f}",
-            confidence_label=confidence_label,
-            confidence_message=confidence_message,
-            confidence_class=confidence_class,
-            processed_image_url=url_for("static", filename=f"processed_uploads/{processed_file_path.name}"),
-            processed_filename=processed_file_path.name,
-            **build_install_context(),
-        )
-    except UnidentifiedImageError:
-        flash("The uploaded file is not a valid image.")
-        return redirect(url_for("upload_page"))
-    except Exception as exc:
-        flash(f"Prediction failed: {exc}")
-        return redirect(url_for("upload_page"))
-    finally:
-        if temp_file_path is not None and temp_file_path.exists():
-            try:
-                os.remove(temp_file_path)
-            except OSError:
-                pass
+    @app.route("/install", methods=["GET"])
+    def install_page():
+        return render_template("install.html", **build_install_context())
+
+    @app.route("/downloads/local-ca", methods=["GET"])
+    def download_local_ca():
+        local_ca_path = get_local_ca_path()
+        if local_ca_path is None:
+            abort(404)
+        return send_file(local_ca_path, as_attachment=True, download_name="mira-local-rootCA.pem")
+
+    @app.route("/artifacts/<path:filename>", methods=["GET"])
+    def training_artifact(filename: str):
+        return send_from_directory(SCREENSHOTS_DIR.resolve(), filename)
+
+    @app.route("/manifest.webmanifest", methods=["GET"])
+    def web_manifest():
+        return send_from_directory(STATIC_DIR.resolve(), "manifest.webmanifest", mimetype="application/manifest+json")
+
+    @app.route("/service-worker.js", methods=["GET"])
+    def service_worker():
+        return send_from_directory(STATIC_DIR.resolve(), "service-worker.js", mimetype="application/javascript")
+
+    @app.route("/assets/<path:filename>", methods=["GET"])
+    def asset_file(filename: str):
+        return send_from_directory(ASSETS_DIR.resolve(), filename)
+
+    @app.route("/predict", methods=["POST"])
+    def predict():
+        if "file" not in request.files:
+            flash("Please choose an image file before submitting.")
+            return redirect(url_for("upload_page"))
+
+        uploaded_file = request.files["file"]
+
+        if uploaded_file.filename == "":
+            flash("No file selected. Please upload an image.")
+            return redirect(url_for("upload_page"))
+
+        if not allowed_file(uploaded_file.filename):
+            flash("Unsupported file type. Please upload a JPG, JPEG, PNG, or BMP image.")
+            return redirect(url_for("upload_page"))
+
+        temp_file_path: Path | None = None
+
+        try:
+            suffix = Path(uploaded_file.filename).suffix.lower()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+                uploaded_file.save(temp_file.name)
+                temp_file_path = Path(temp_file.name)
+
+            processed_file_path = process_uploaded_image(temp_file_path, PROCESSED_UPLOADS_DIR)
+            preview_file_path = save_preview_image(temp_file_path, PROCESSED_UPLOADS_DIR)
+            prediction, confidence = predict_image(processed_file_path)
+            confidence_label, confidence_message, confidence_class = build_confidence_feedback(confidence)
+            logger.info(
+                "Prediction completed for upload %s with label '%s' at %.2f%% confidence",
+                processed_file_path.name,
+                prediction,
+                confidence,
+            )
+            return render_template(
+                "result.html",
+                prediction=prediction,
+                confidence=f"{confidence:.2f}",
+                confidence_label=confidence_label,
+                confidence_message=confidence_message,
+                confidence_class=confidence_class,
+                processed_image_url=url_for("static", filename=f"processed_uploads/{preview_file_path.name}"),
+                processed_filename=processed_file_path.name,
+                **build_install_context(),
+            )
+        except UnidentifiedImageError:
+            flash("The uploaded file is not a valid image.")
+            return redirect(url_for("upload_page"))
+        except FileNotFoundError as exc:
+            logger.exception("Model or dependency file missing during prediction")
+            flash(str(exc))
+            return redirect(url_for("upload_page"))
+        except Exception:
+            logger.exception("Prediction failed unexpectedly")
+            flash("Prediction failed due to an unexpected server error. Check the application logs for details.")
+            return redirect(url_for("upload_page"))
+        finally:
+            if temp_file_path is not None and temp_file_path.exists():
+                try:
+                    temp_file_path.unlink()
+                except OSError:
+                    logger.warning("Could not remove temporary upload file %s", temp_file_path)
+
+    return app
 
 
-if __name__ == "__main__":
-    PROCESSED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    model, class_names = load_trained_model(MODEL_PATH)
+def get_ssl_context():
     cert_file = CERTS_DIR / "mira-local.pem"
     key_file = CERTS_DIR / "mira-local-key.pem"
 
     if USE_HTTPS and cert_file.exists() and key_file.exists():
-        ssl_context = (str(cert_file), str(key_file))
-    elif USE_HTTPS:
-        ssl_context = "adhoc"
-    else:
-        ssl_context = None
+        return (str(cert_file), str(key_file))
+    if USE_HTTPS:
+        return "adhoc"
+    return None
 
+
+configure_logging()
+app = create_app()
+
+
+if __name__ == "__main__":
+    PROCESSED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    DOCS_STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    get_model_bundle()
+
+    ssl_context = get_ssl_context()
     protocol = "https" if ssl_context else "http"
-    print(f"Server ready at {protocol}://127.0.0.1:{APP_PORT} and waiting for requests.")
+    logger.info("Server ready at %s://127.0.0.1:%s and waiting for requests.", protocol, APP_PORT)
     app.run(
         host=APP_HOST,
         port=APP_PORT,
@@ -399,3 +425,4 @@ if __name__ == "__main__":
         use_reloader=False,
         ssl_context=ssl_context,
     )
+
