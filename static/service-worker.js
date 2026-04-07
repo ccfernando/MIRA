@@ -1,11 +1,11 @@
-const CACHE_NAME = "mira-shell-v5";
+const CACHE_NAME = "mira-shell-v6";
 const APP_SHELL_URLS = [
   "/",
   "/upload",
   "/analytics",
   "/about",
   "/install",
-  "/static/style.css?v=3",
+  "/static/style.css?v=4",
   "/static/pwa.js?v=4",
   "/manifest.webmanifest",
   "/service-worker.js",
@@ -68,3 +68,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+

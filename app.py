@@ -110,6 +110,7 @@ def build_install_context() -> dict:
         "install_page_url": url_for("install_page"),
         "documentation_markdown_url": url_for("static", filename="docs/MIRA-Production-Guide.md"),
         "documentation_pdf_url": url_for("static", filename="docs/mira-production-guide.pdf"),
+        "model_ready": MODEL_PATH.exists(),
     }
 
 
@@ -413,7 +414,6 @@ app = create_app()
 if __name__ == "__main__":
     PROCESSED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
     DOCS_STATIC_DIR.mkdir(parents=True, exist_ok=True)
-    get_model_bundle()
 
     ssl_context = get_ssl_context()
     protocol = "https" if ssl_context else "http"

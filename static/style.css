@@ -7,7 +7,7 @@ Research/education only.
 :root {
     --bg: #eef4f7;
     --bg-soft: #f7fbfc;
-    --panel: rgba(255, 255, 255, 0.82);
+    --panel: #ffffff;
     --panel-strong: #ffffff;
     --border: rgba(18, 88, 110, 0.12);
     --border-strong: rgba(18, 88, 110, 0.2);
@@ -18,11 +18,11 @@ Research/education only.
     --accent: #12b5cb;
     --success: #1f9d72;
     --danger: #cc5a73;
-    --shadow-lg: 0 30px 80px rgba(18, 49, 60, 0.13);
-    --shadow-md: 0 18px 40px rgba(18, 49, 60, 0.09);
-    --radius-xl: 30px;
-    --radius-lg: 22px;
-    --radius-md: 16px;
+    --shadow-lg: 0 10px 24px rgba(24, 54, 66, 0.05);
+    --shadow-md: 0 4px 14px rgba(24, 54, 66, 0.04);
+    --radius-xl: 18px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
     --sidebar-width: 260px;
 }
 
@@ -38,12 +38,9 @@ body {
     margin: 0;
     min-height: 100vh;
     color: var(--text);
-    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    font-family: "Segoe UI", "Aptos", "Helvetica Neue", sans-serif;
     overflow-x: hidden;
-    background:
-        radial-gradient(circle at top left, rgba(18, 181, 203, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(31, 157, 114, 0.12), transparent 24%),
-        linear-gradient(180deg, #f8fcfd 0%, var(--bg) 55%, #e9f1f5 100%);
+    background: #edf4f7;
 }
 
 a {
@@ -96,9 +93,8 @@ a {
     gap: 16px;
     padding: 18px 24px;
     border: 1px solid var(--border);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(18px);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.96);
     box-shadow: var(--shadow-md);
 }
 
@@ -114,13 +110,13 @@ a {
     width: 52px;
     height: 52px;
     padding: 6px;
-    border-radius: 16px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     overflow: hidden;
     flex-shrink: 0;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    background: var(--primary);
+    border: 1px solid rgba(11, 114, 133, 0.24);
 }
 
 .brand-mark-image {
@@ -188,7 +184,7 @@ a {
 .sidebar-link:hover,
 .mobile-nav-item:hover {
     color: var(--primary-dark);
-    background: rgba(18, 181, 203, 0.1);
+    background: rgba(18, 181, 203, 0.12);
 }
 
 .install-button {
@@ -197,8 +193,8 @@ a {
     min-height: 44px;
     padding: 0 16px;
     border: 1px solid var(--border-strong);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.88);
+    border-radius: 12px;
+    background: var(--panel);
     color: var(--primary-dark);
     font-weight: 700;
     box-shadow: none;
@@ -246,9 +242,9 @@ a {
 }
 
 .install-guide-active {
-    border-color: rgba(11, 114, 133, 0.4);
-    box-shadow: 0 0 0 3px rgba(18, 181, 203, 0.12);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(233, 247, 249, 0.96));
+    border-color: rgba(11, 114, 133, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(18, 181, 203, 0.12);
+    background: rgba(18, 181, 203, 0.08);
 }
 
 .profile-chip {
@@ -257,8 +253,8 @@ a {
     gap: 10px;
     padding: 12px 16px;
     border: 1px solid var(--border);
-    border-radius: 999px;
-    background: linear-gradient(180deg, #ffffff, #eff8fa);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.84);
     color: var(--text);
     font-weight: 700;
     flex-shrink: 0;
@@ -269,7 +265,7 @@ a {
     height: 10px;
     border-radius: 50%;
     background: var(--success);
-    box-shadow: 0 0 0 6px rgba(31, 157, 114, 0.12);
+    box-shadow: 0 0 0 4px rgba(31, 157, 114, 0.12);
 }
 
 .sidebar-toggle {
@@ -294,7 +290,7 @@ a {
     grid-area: sidebar;
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(245, 251, 252, 0.9));
+    background: var(--panel);
     box-shadow: var(--shadow-md);
     padding: 22px 18px;
     display: flex;
@@ -326,14 +322,15 @@ a {
 .sidebar-link.active,
 .mobile-nav-item.active {
     color: var(--primary-dark);
-    background: linear-gradient(135deg, rgba(18, 181, 203, 0.14), rgba(11, 114, 133, 0.08));
+    background: rgba(18, 181, 203, 0.12);
 }
 
 .sidebar-note {
     margin-top: auto;
     padding: 16px;
-    border-radius: 18px;
+    border-radius: 12px;
     background: rgba(18, 181, 203, 0.08);
+    border: 1px solid rgba(18, 88, 110, 0.1);
 }
 
 .sidebar-note p {
@@ -352,7 +349,6 @@ a {
 .dashboard-card {
     border: 1px solid var(--border);
     background: var(--panel);
-    backdrop-filter: blur(16px);
     box-shadow: var(--shadow-lg);
 }
 
@@ -360,21 +356,14 @@ a {
     display: grid;
     grid-template-columns: 1.3fr 1fr;
     gap: 24px;
-    padding: 34px;
-    border-radius: 34px;
+    padding: 30px;
+    border-radius: 12px;
     overflow: hidden;
     position: relative;
 }
 
 .hero-panel::after {
-    content: "";
-    position: absolute;
-    inset: auto -60px -80px auto;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(18, 181, 203, 0.22), transparent 70%);
-    pointer-events: none;
+    display: none;
 }
 
 .hero-panel.compact {
@@ -435,23 +424,23 @@ button {
     min-height: 48px;
     padding: 0 20px;
     border: 1px solid transparent;
-    border-radius: 999px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    background: var(--primary);
     color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 10px 24px rgba(11, 114, 133, 0.22);
+    box-shadow: none;
     cursor: pointer;
 }
 
 .button-link:hover,
 button:hover {
     transform: translateY(-1px);
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    background: var(--primary-dark);
 }
 
 .button-link.secondary {
     color: var(--primary-dark);
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.84);
     border-color: var(--border-strong);
     box-shadow: none;
 }
@@ -467,9 +456,10 @@ button:hover {
 .metric-tile,
 .viz-card {
     padding: 18px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.86);
+    border-radius: 14px;
+    background: #ffffff;
     border: 1px solid rgba(18, 88, 110, 0.08);
+    box-shadow: inset 0 1px 0 rgba(18, 181, 203, 0.08);
 }
 
 .mini-stat-label {
@@ -489,7 +479,7 @@ button:hover {
 }
 
 .dashboard-card {
-    border-radius: 30px;
+    border-radius: 16px;
     padding: 28px;
 }
 
@@ -539,8 +529,8 @@ button:hover {
 }
 
 .tag.cyan {
-    color: #0c6f83;
-    background: rgba(18, 181, 203, 0.14);
+    color: #1d5c72;
+    background: rgba(18, 181, 203, 0.12);
 }
 
 .upload-form {
@@ -554,9 +544,8 @@ button:hover {
     justify-items: start;
     padding: 24px;
     border: 1.5px dashed rgba(11, 114, 133, 0.24);
-    border-radius: 26px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(238, 248, 250, 0.95));
+    border-radius: 14px;
+    background: #fafcfc;
     cursor: pointer;
 }
 
@@ -576,11 +565,12 @@ button:hover {
     height: 42px;
     display: grid;
     place-items: center;
-    border-radius: 14px;
-    color: #ffffff;
+    border-radius: 10px;
+    color: var(--primary-dark);
     font-size: 1.2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
+    background: rgba(18, 181, 203, 0.12);
+    border: 1px solid rgba(11, 114, 133, 0.14);
 }
 
 .dropzone-title {
@@ -599,7 +589,7 @@ button:hover {
 
 .alert {
     padding: 16px 18px;
-    border-radius: 20px;
+    border-radius: 12px;
     border: 1px solid rgba(204, 90, 115, 0.18);
     background: rgba(204, 90, 115, 0.08);
     color: #9d334e;
@@ -620,7 +610,7 @@ button:hover {
 
 .viz-image-link {
     display: block;
-    border-radius: 18px;
+    border-radius: 12px;
     overflow: hidden;
 }
 
@@ -629,7 +619,7 @@ button:hover {
     width: 100%;
     height: 220px;
     object-fit: contain;
-    border-radius: 18px;
+    border-radius: 12px;
     border: 1px solid rgba(18, 88, 110, 0.08);
     background: #eff8fa;
 }
@@ -654,7 +644,7 @@ button:hover {
     line-height: 1.6;
 }
 .fake-chart {
-    border-radius: 18px;
+    border-radius: 12px;
     height: 180px;
     background-color: #eff8fa;
     border: 1px solid rgba(18, 88, 110, 0.08);
@@ -673,9 +663,8 @@ button:hover {
 .chart-lines::before {
     background:
         linear-gradient(transparent 0 92%, rgba(18, 88, 110, 0.08) 92% 100%),
-        linear-gradient(120deg, transparent 0 14%, rgba(18, 181, 203, 0.26) 14% 18%, transparent 18% 100%),
-        linear-gradient(160deg, transparent 0 38%, rgba(31, 157, 114, 0.24) 38% 42%, transparent 42% 100%),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2));
+        linear-gradient(120deg, transparent 0 14%, rgba(18, 181, 203, 0.18) 14% 18%, transparent 18% 100%),
+        linear-gradient(160deg, transparent 0 38%, rgba(47, 125, 98, 0.14) 38% 42%, transparent 42% 100%);
 }
 
 .chart-grid::before {
@@ -687,9 +676,9 @@ button:hover {
 
 .chart-wave::before {
     background:
-        radial-gradient(circle at 20% 70%, rgba(18, 181, 203, 0.28), transparent 22%),
-        radial-gradient(circle at 52% 38%, rgba(31, 157, 114, 0.2), transparent 18%),
-        radial-gradient(circle at 78% 62%, rgba(11, 114, 133, 0.22), transparent 20%);
+        radial-gradient(circle at 20% 70%, rgba(18, 181, 203, 0.18), transparent 22%),
+        radial-gradient(circle at 52% 38%, rgba(47, 125, 98, 0.12), transparent 18%),
+        radial-gradient(circle at 78% 62%, rgba(11, 114, 133, 0.14), transparent 20%);
 }
 
 .metric-grid {
@@ -723,7 +712,7 @@ button:hover {
     place-items: center;
     min-height: 320px;
     padding: 18px;
-    border-radius: 24px;
+    border-radius: 16px;
     border: 1px solid rgba(18, 88, 110, 0.12);
     background: #0b1720 !important;
     box-shadow: var(--shadow-md);
@@ -734,7 +723,7 @@ button:hover {
     width: auto;
     max-width: 100%;
     display: block;
-    border-radius: 24px;
+    border-radius: 16px;
     background: transparent;
 }
 
@@ -787,9 +776,8 @@ button:disabled {
     z-index: 20;
     padding: 10px;
     border: 1px solid var(--border);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(16px);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.98);
     box-shadow: var(--shadow-lg);
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
@@ -800,7 +788,7 @@ button:disabled {
     place-items: center;
     min-height: 52px;
     padding: 8px 4px;
-    border-radius: 14px;
+    border-radius: 10px;
     color: var(--muted);
 }
 

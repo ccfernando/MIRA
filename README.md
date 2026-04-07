@@ -151,6 +151,8 @@ This creates:
 python app.py
 ```
 
+A fresh clone can start the Flask UI immediately. Prediction only works after you place a trained `alz_model.pth` file in the project root.
+
 By default the app starts with HTTPS enabled if `certs/mira-local.pem` and `certs/mira-local-key.pem` exist.
 
 Expected local URLs:
@@ -346,6 +348,25 @@ Large or local-only files should usually stay out of Git, including:
 - local development certificates in `certs/`
 
 Review `.gitignore` before pushing if you want to keep GitHub focused on source code and documentation.
+
+## Fresh Clone Readiness
+
+After cloning, a user can install dependencies and start the web interface right away with `python app.py`.
+
+What is intentionally excluded from Git:
+
+- `alz_model.pth`: users must train or copy in a model before prediction works
+- `data/`: dataset stays local
+- `screenshots/`: generated analytics artifacts are optional and recreated by training
+- `certs/`: local HTTPS certificates are machine-specific
+- `static/processed_uploads/`: created automatically when uploads are processed
+
+Folders created automatically at runtime when needed:
+
+- `static/processed_uploads/`
+- `static/docs/` when regenerating public documentation artifacts
+
+This means the app is cloneable and launchable, but not fully inference-ready until a trained model is provided.
 
 ## Limitations
 
